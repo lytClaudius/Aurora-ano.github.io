@@ -362,6 +362,39 @@
       .exp2 .media{ height: 300px; }
       .discMedia{ height: 300px; }
     }
+
+    .videoCard{
+      margin: 14px 0 18px;
+      padding: 14px 14px 12px;
+      border: 1px solid rgba(0,0,0,0.08);
+      border-radius: 12px;
+      background: rgba(255,255,255,0.7);
+    }
+
+    .videoTitle{
+      margin-bottom: 10px;
+      font-size: 0.98rem;
+    }
+
+    .videoWrap{
+      width: 100%;
+      overflow: hidden;
+      border-radius: 12px;
+      background: #000;
+    }
+
+    .demoVideo{
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    .videoNote{
+      margin-top: 8px;
+      font-size: 0.92rem;
+      opacity: 0.85;
+    }
+
   </style>
 </head>
 
@@ -474,6 +507,29 @@
             <div class="pill">Metric: <b>F@τ</b> (harmonic mean of precision & recall)</div>
             <div class="pill">Interaction: <b>drag / scroll</b> to orbit & zoom</div>
           </div>
+
+          <div class="videoCard">
+          <div class="videoTitle">
+            <b>Real-Robot Demo.</b> In-hand rotation on <span class="bold">Cube</span> (30s).
+          </div>
+
+          <div class="videoWrap">
+            <video class="demoVideo"
+                   controls
+                   playsinline
+                   preload="metadata"
+                   poster="static/videos/cube.jpg">
+              <source src="static/videos/cube.jpg" type="video/mp4" />
+              <!-- 可选：再放一个 webm 兜底 -->
+              <!-- <source src="static/videos/cube_demo.webm" type="video/webm" /> -->
+              Your browser does not support the video tag.
+            </video>
+          </div>
+
+          <div class="videoNote">
+            We show the real-world in-hand rotation used in Experiment I for data capture.
+          </div>
+        </div>
 
           <div class="qual-grid" id="qualGrid">
             <div class="colhead">Object</div>
