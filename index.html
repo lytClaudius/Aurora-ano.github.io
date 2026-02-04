@@ -1,0 +1,1284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta name="google-site-verification" content="fLaM7cZbWUf32rmxe8fsIO73JmjnEYlr1zv-h9tbk_Q" />
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <meta name="title" content="AURORA: Active Uncertainty-Driven Re-Orientation for In-Hand Reconstruction">
+  <meta name="description" content="BRIEF_DESCRIPTION_OF_YOUR_RESEARCH_CONTRIBUTION_AND_FINDINGS">
+  <meta name="author" content="Anonymous_Authors">
+  <meta name="robots" content="index, follow">
+  <meta name="language" content="English">
+  <meta name="theme-color" content="#2563eb">
+
+  <title>AURORA: Active Uncertainty-Driven Re-Orientation for In-Hand Reconstruction</title>
+
+  <link rel="icon" type="image/x-icon" href="static/images/reconstruction.png">
+  <link rel="apple-touch-icon" href="static/images/reconstruction.png">
+
+  <link rel="stylesheet" href="static/css/bulma.min.css">
+  <link rel="stylesheet" href="static/css/index.css">
+
+  <link rel="preload" href="static/css/bulma-carousel.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+  <link rel="preload" href="static/css/bulma-slider.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+  <link rel="preload" href="static/css/fontawesome.all.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+
+  <noscript>
+    <link rel="stylesheet" href="static/css/bulma-carousel.min.css">
+    <link rel="stylesheet" href="static/css/bulma-slider.min.css">
+    <link rel="stylesheet" href="static/css/fontawesome.all.min.css">
+  </noscript>
+
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <script defer src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <script defer src="static/js/fontawesome.all.min.js"></script>
+  <script defer src="static/js/bulma-carousel.min.js"></script>
+  <script defer src="static/js/bulma-slider.min.js"></script>
+  <script defer src="static/js/index.js"></script>
+
+  <!-- MathJax -->
+  <script>
+    window.MathJax = {
+      tex: {
+        inlineMath: [['\\(', '\\)'], ['$', '$']],
+        displayMath: [['\\[', '\\]'], ['$$', '$$']]
+      }
+    };
+  </script>
+  <script id="MathJax-script" async
+          src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
+  </script>
+
+  <!-- =========================
+       Styles (unified + fixed overflow)
+       ========================= -->
+  <style>
+    :root{
+      --bg:#ffffff;
+      --card:#ffffff;
+      --text:#111827;
+      --muted:#4b5563;
+      --border: rgba(0,0,0,.10);
+      --shadow: 0 10px 28px rgba(0,0,0,.08);
+      --radius: 18px;
+      --gap: 14px;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      --sans: Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+    }
+
+    /* Wrapper blocks */
+    .expBlock, .discBlock{
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      box-shadow: var(--shadow);
+      padding: 28px 22px 22px;
+      color: var(--text);
+      font-family: var(--sans);
+    }
+    .expBlock h2, .discBlock h2{ margin:0 0 6px; font-size: 26px; }
+    .expBlock .subtitle, .discBlock .subtitle{
+      margin:0 0 16px;
+      color: var(--muted);
+      font-size: 15px;
+      line-height: 1.55;
+      max-width: 980px;
+    }
+
+    /* Pills */
+    .pillrow{ display:flex; gap:10px; flex-wrap:wrap; margin: 12px 0 18px; }
+    .pill{
+      display:inline-flex; align-items:center; gap:8px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: rgba(0,0,0,.03);
+      border: 1px solid var(--border);
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .pill b{ color: var(--text); font-weight: 800; }
+
+    /* Cards */
+    .card{
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow:hidden;              /* IMPORTANT: clip everything */
+      position: relative;
+      min-height: 260px;
+    }
+    .cardHeader, .cardHead, .discHead{
+      display:flex;
+      align-items: baseline;
+      justify-content: space-between;
+      padding: 12px 14px 8px;
+      border-bottom: 1px solid rgba(0,0,0,.08);
+      background: rgba(0,0,0,.02);
+    }
+    .objname{ font-weight: 800; font-size: 14px; color: var(--text); }
+    .title{ font-weight: 900; font-size: 14px; color: var(--text); }
+    .tag{ font-family: var(--mono); font-size: 12px; color: var(--muted); }
+
+    /* Media */
+    .media{
+      height: 240px;
+      display:flex;
+      align-items:stretch;
+      justify-content:center;
+      background:#fff;
+      overflow:hidden;              /* IMPORTANT */
+      position: relative;
+    }
+    .media img{
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      object-position: center;
+      display:block;
+      background:#fff;
+    }
+
+    /* Viewer */
+    .viewer{
+      width: 100%;
+      height: 100%;
+      position: relative;
+      background:#fff;
+      overflow:hidden;              /* IMPORTANT */
+    }
+    .viewer canvas{
+      position:absolute;            /* IMPORTANT: keeps it inside */
+      inset:0;
+      width:100% !important;
+      height:100% !important;
+      display:block;
+    }
+
+    .overlay{
+      position:absolute; inset:0;
+      display:flex; align-items:center; justify-content:center;
+      color: var(--muted);
+      font-size: 13px;
+      pointer-events:none;
+      background: rgba(255,255,255,.75);
+      z-index:3;
+    }
+    .controlsBar{
+      position:absolute;
+      left: 10px;
+      bottom: 10px;
+      display:flex;
+      gap:8px;
+      z-index: 4;
+    }
+    .btn{
+      appearance:none;
+      border: 1px solid rgba(0,0,0,.14);
+      background: rgba(255,255,255,.90);
+      color: var(--text);
+      padding: 7px 10px;
+      border-radius: 12px;
+      font-size: 12px;
+      cursor:pointer;
+    }
+    .btn:hover{ border-color: rgba(37,99,235,.35); }
+    .hint{
+      position:absolute;
+      right: 10px;
+      bottom: 12px;
+      color: rgba(17,24,39,.75);
+      font-size: 12px;
+      background: rgba(255,255,255,.85);
+      border: 1px solid rgba(0,0,0,.12);
+      padding: 6px 10px;
+      border-radius: 999px;
+      backdrop-filter: blur(6px);
+      pointer-events:none;
+      z-index: 4;
+    }
+
+    /* Normal legend — compact + collapsible */
+    .normalLegend{
+      position:absolute;
+      right: 10px;
+      top: 10px;
+      z-index: 5;
+      background: rgba(255,255,255,.92);
+      border: 1px solid rgba(0,0,0,.12);
+      border-radius: 12px;
+      padding: 8px 10px;
+      font-size: 12px;
+      color: #111;
+      backdrop-filter: blur(6px);
+      pointer-events:auto;          /* allow click */
+      max-width: 160px;
+    }
+    .nl-head{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      cursor:pointer;
+      user-select:none;
+      font-weight: 900;
+    }
+    .nl-head span{
+      font-family: var(--mono);
+      font-weight: 800;
+      font-size: 11px;
+      color:#374151;
+      opacity:.8;
+    }
+    .nl-body{ margin-top:8px; display:none; }
+    .normalLegend.open .nl-body{ display:block; }
+
+    .nl-row{ display:flex; align-items:center; gap:8px; margin-top: 6px; }
+    .nl-bar{
+      flex:1;
+      height: 8px;
+      border-radius: 999px;
+      border: 1px solid rgba(0,0,0,.15);
+    }
+    .nl-lbl{
+      width: 14px;
+      font-family: var(--mono);
+      font-weight: 900;
+      font-size: 11px;
+    }
+    .nl-minmax{
+      display:flex;
+      justify-content: space-between;
+      color:#374151;
+      font-family: var(--mono);
+      font-size: 10px;
+      margin-top: 6px;
+      opacity:.9;
+    }
+
+    /* Tables */
+    .tableWrap{
+      margin-top: 18px;
+      background: #ffffff;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow:hidden;
+    }
+    .tableTitle{
+      padding: 14px 16px 10px;
+      border-bottom: 1px solid rgba(0,0,0,.08);
+      color: var(--muted);
+      line-height: 1.5;
+      font-size: 14px;
+    }
+    table{ width:100%; border-collapse: collapse; font-size: 13.5px; }
+    th, td{
+      padding: 10px 10px;
+      border-bottom: 1px solid rgba(0,0,0,.06);
+      text-align: right;
+      white-space: nowrap;
+    }
+    th:first-child, td:first-child{ text-align: left; }
+    thead th{
+      color: var(--muted);
+      font-weight: 900;
+      background: rgba(0,0,0,.03);
+    }
+    tbody tr:hover{ background: rgba(37,99,235,.05); }
+    .bold{ font-weight: 900; color: var(--text); }
+
+    .foot{
+      margin-top: 14px;
+      color: var(--muted);
+      line-height: 1.7;
+      font-size: 15px;
+      max-width: 980px;
+    }
+
+    /* Exp1 grid */
+    .qual-grid{
+      display:grid;
+      grid-template-columns: 1.1fr 1fr 1fr;
+      gap: var(--gap);
+      margin-top: 10px;
+    }
+    .colhead{
+      position: sticky;
+      top: 0;
+      z-index: 2;
+      background: rgba(255,255,255,.92);
+      backdrop-filter: blur(8px);
+      padding: 10px 10px 12px;
+      border-radius: 14px;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: .12em;
+    }
+
+    /* Exp2 figure + 2×3 grid */
+    .exp2 figure, .disc-fig{
+      margin:0;
+      border:1px solid rgba(0,0,0,.10);
+      border-radius: 16px;
+      overflow:hidden;
+      background:#fff;
+    }
+    .exp2 figure img, .disc-fig img{
+      width:100%;
+      height:auto;
+      display:block;
+      object-fit: contain;
+      background:#fff;
+    }
+    .exp2 figcaption, .disc-fig figcaption{
+      padding: 10px 12px;
+      font-size: 13px;
+      color:#4b5563;
+      border-top: 1px solid rgba(0,0,0,.08);
+    }
+
+    .meshgrid-2x3, .discGrid{
+      display:grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap:14px;
+      margin-top: 14px;
+    }
+    .exp2 .media{ height: 260px; }
+    .exp2 .viewer{ height: 100%; }     /* viewer fills media */
+
+    .discMedia{ height: 280px; display:flex; align-items:stretch; overflow:hidden; }
+    .discMedia.imgOnly img{ width:100%; height:100%; object-fit: contain; }
+
+    @media (max-width: 980px){
+      .qual-grid{ grid-template-columns: 1fr; }
+      .colhead{ display:none; }
+      .media{ height: 260px; }
+      .meshgrid-2x3, .discGrid{ grid-template-columns: 1fr; }
+      .exp2 .media{ height: 300px; }
+      .discMedia{ height: 300px; }
+    }
+  </style>
+</head>
+
+<body>
+  <button class="scroll-to-top" onclick="scrollToTop()" title="Scroll to top" aria-label="Scroll to top">
+    <i class="fas fa-chevron-up"></i>
+  </button>
+
+  <main id="main-content">
+    <!-- Hero -->
+    <section class="hero">
+      <div class="hero-body">
+        <div class="container is-max-desktop">
+          <div class="columns is-centered">
+            <div class="column has-text-centered">
+              <h1 class="title is-3 publication-title">AURORA: Active Uncertainty-Driven Re-Orientation for In-Hand Reconstruction</h1>
+              <div class="is-size-5 publication-authors">
+                <span class="author-block"><a href="#" target="_blank">Anonymous Authors</a></span>
+              </div>
+
+              <div class="publication-links" style="margin-top: 12px;">
+                <span class="link-block">
+                  <a href="https://github.com/FerryRain/Autonomous-Exploration-for-Shape-Reconstruction" target="_blank"
+                     class="external-link button is-normal is-rounded is-dark">
+                    <span class="icon"><i class="fab fa-github"></i></span>
+                    <span>Code (Coming soon)</span>
+                  </a>
+                </span>
+              </div>
+
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Teaser -->
+    <section class="hero teaser">
+      <div class="container is-max-desktop">
+        <div class="hero-body">
+          <img src="static/images/teaser.png" alt="teaser" loading="lazy">
+          <h2 class="subtitle has-text-centered">
+            AURORA actively reorients an object based on uncertainty-driven next-best-view planning to expose unobserved regions,
+            enabling incremental observation and 3D reconstruction from a fixed RGB-D camera.
+          </h2>
+        </div>
+      </div>
+    </section>
+
+    <!-- Abstract -->
+    <section class="section hero is-light">
+      <div class="container is-max-desktop">
+        <div class="columns is-centered has-text-centered">
+          <div class="column is-four-fifths">
+            <h2 class="title is-3">Abstract</h2>
+            <div class="content has-text-justified">
+              <p>
+                Recovering complete 3D geometry of robot-held objects is fundamentally limited by observability. The manipulator occludes the object,
+                and only a small set of viewpoints is accessible during grasping, leaving large surface regions unobserved. Although in-hand manipulation
+                can reveal these regions, most existing methods rely on fixed manipulation sequences and lack closed-loop reasoning about missing views.
+                To bridge the gap, we present AURORA, an active in-hand 3D reconstruction framework that integrates perception, uncertainty-aware planning,
+                and in-hand manipulation. Its core component Ray-GPIS estimates reconstruction uncertainty over viewing directions and selects next-best-view
+                object reorientations that maximize information gain. These reorientations are executed using an axis-conditioned in-hand rotation policy.
+                The observed manipulation sequence is processed through object segmentation, online 6D pose tracking, and incremental RGB-D fusion to produce
+                efficient and high-fidelity reconstructions. Extensive real-world experiments on objects with diverse geometries show that AURORA consistently
+                outperforms open-loop baselines, achieving higher completeness, faster convergence, and robust performance across varied shapes.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Pipeline -->
+    <section class="hero is-small is-light">
+      <div class="hero-body">
+        <div class="container has-text-centered">
+          <h2 class="title is-3">Pipeline</h2>
+          <p class="content is-size-5" style="margin-bottom: 1.5em;">
+            Overview of the proposed technical pipeline. The system integrates four modules:
+            (a) in-hand object reorientation with the Leap Hand; (b) 6D pose tracking via BundleTrack;
+            (c-d) reconstruction; (e) uncertainty-driven next-best-view planning.
+          </p>
+          <figure style="display:inline-block; max-width: 95%;">
+            <img src="static/images/pipeline.png" alt="Pipeline overview" loading="lazy" style="width:100%; height:auto;">
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <!-- =========================
+         Experiment I + II
+         ========================= -->
+    <section class="section" id="experiments">
+      <div class="container is-max-desktop">
+
+        <!-- Exp1 -->
+        <div class="expBlock exp1" id="exp1">
+          <h2>Experiment I — Reconstruction Quality</h2>
+          <p class="subtitle">
+            We evaluate reconstruction performance on six graspable real-world objects under a fixed manipulation budget of
+            <span class="bold">30&nbsp;s</span>. For each object, we show the qualitative results (RGB, online point cloud, offline refined mesh),
+            followed by quantitative F-scores.
+          </p>
+
+          <div class="pillrow">
+            <div class="pill">Budget: <b>30 s</b></div>
+            <div class="pill">Online: <b>PCD–PCD</b></div>
+            <div class="pill">Offline: <b>Mesh–Mesh</b></div>
+            <div class="pill">Metric: <b>F@τ</b> (harmonic mean of precision & recall)</div>
+            <div class="pill">Interaction: <b>drag / scroll</b> to orbit & zoom</div>
+          </div>
+
+          <div class="qual-grid" id="qualGrid">
+            <div class="colhead">Object</div>
+            <div class="colhead">Online Point Cloud</div>
+            <div class="colhead">Offline Mesh (Normal Colormap)</div>
+            <!-- rows injected by JS -->
+          </div>
+
+          <div class="tableWrap">
+            <div class="tableTitle">
+              <b>Table.</b> Quantitative results after a fixed <span class="bold">30 s</span> budget.
+              We report F-scores <span class="bold">F@τ</span> (higher is better), where F@τ is the harmonic mean of precision and recall within tolerance τ.
+            </div>
+
+            <div style="overflow:auto;">
+              <table>
+                <thead>
+                  <tr>
+                    <th rowspan="2">Obj.</th>
+                    <th colspan="3">PCD–PCD (Online)</th>
+                    <th colspan="3">Mesh–Mesh (Offline)</th>
+                  </tr>
+                  <tr>
+                    <th>F@2 ↑</th><th class="bold">F@5 ↑</th><th>F@10 ↑</th>
+                    <th>F@2 ↑</th><th class="bold">F@5 ↑</th><th>F@10 ↑</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr><td>Cube</td><td>0.2895</td><td class="bold">0.9337</td><td>0.9977</td><td>0.6481</td><td class="bold">0.9557</td><td>0.9957</td></tr>
+                  <tr><td>Corner Block</td><td>0.2353</td><td class="bold">0.7354</td><td>0.9303</td><td>0.5298</td><td class="bold">0.8559</td><td>0.9488</td></tr>
+                  <tr><td>L-shaped Block</td><td>0.2306</td><td class="bold">0.8366</td><td>0.9886</td><td>0.4674</td><td class="bold">0.8367</td><td>0.9450</td></tr>
+                  <tr><td>Pepper</td><td>0.1770</td><td class="bold">0.8321</td><td>0.9773</td><td>0.5480</td><td class="bold">0.8890</td><td>0.9913</td></tr>
+                  <tr><td>Cylinder</td><td>0.4428</td><td class="bold">0.8400</td><td>0.9425</td><td>0.4035</td><td class="bold">0.8320</td><td>0.9372</td></tr>
+                  <tr><td>Cross Block</td><td>0.1454</td><td class="bold">0.7718</td><td>0.9664</td><td>0.4601</td><td class="bold">0.8050</td><td>0.9850</td></tr>
+                  <tr><td class="bold">Mean</td><td>0.2534</td><td class="bold">0.8249</td><td>0.9671</td><td>0.5095</td><td class="bold">0.8624</td><td>0.9672</td></tr>
+                  <tr><td class="bold">Std.</td><td>0.1054</td><td class="bold">0.0679</td><td>0.0263</td><td>0.0855</td><td class="bold">0.0535</td><td>0.0262</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <p class="foot">
+            <b>Summary.</b> Under a fixed <span class="bold">30 s</span> manipulation budget, our framework delivers strong online reconstructions
+            with an average <span class="bold">F@10 = 0.9671 ± 0.0263</span> and <span class="bold">F@5 = 0.8249 ± 0.0679</span>.
+            The offline refinement stage further improves geometric consistency and reduces residual artifacts, achieving
+            <span class="bold">F@10 = 0.9672 ± 0.0262</span> and <span class="bold">F@5 = 0.8624 ± 0.0535</span>.
+            Remaining errors are primarily caused by sensing noise and small pose misalignments due to tracking inaccuracies.
+          </p>
+        </div>
+
+        <!-- Exp2 -->
+        <div class="expBlock exp2" id="exp2" style="margin-top:18px;">
+          <h2>Experiment II — Efficiency vs Non-active Baselines</h2>
+          <p class="subtitle">
+            We compare five rotation strategies using the temporal evolution of the uncertainty tail \(q_{95}\):
+            <b>ours</b>, a fixed schedule \(z\!\rightarrow\!x\!\rightarrow\!y\!\rightarrow\!z\!\rightarrow\!x\), and single-axis baselines (\(x\)-only/\(y\)-only/\(z\)-only).
+            Below, we show the offline refined meshes for all five strategies (normal colormap).
+          </p>
+
+          <figure>
+            <img src="static/images/efficiency.png" alt="q95 uncertainty curves" loading="lazy">
+            <figcaption>
+              <b>\(q_{95}\) uncertainty</b> over time (avg. over 6 objects) under five rotation strategies:
+              <b>ours</b>, fixed <b>\(z\!\rightarrow\!x\!\rightarrow\!y\!\rightarrow\!z\!\rightarrow\!x\)</b>, and <b>\(x\)-only</b>, <b>\(y\)-only</b>, <b>\(z\)-only</b>.
+            </figcaption>
+          </figure>
+
+          <!-- 2×3 grid -->
+          <div class="meshgrid-2x3">
+            <!-- (1,1) RGB -->
+            <div class="card">
+              <div class="cardHead">
+                <div class="title">Pepper (RGB)</div>
+                <div class="tag">Captured view</div>
+              </div>
+              <div class="media">
+                <img src="assets/ablation/rgb.png" alt="pepper rgb" loading="lazy">
+              </div>
+            </div>
+
+            <!-- (1,2) ours -->
+            <div class="card">
+              <div class="cardHead">
+                <div class="title">Ours (Closed-loop)</div>
+                <div class="tag">Offline Mesh</div>
+              </div>
+              <div class="media">
+                <div class="viewer" data-kind="ply-mesh" data-src="assets/ablation/ours.ply" data-normal="1">
+                  <div class="overlay">Scroll to load 3D…</div>
+                  <div class="normalLegend"></div>
+                  <div class="controlsBar"><button class="btn">Reset view</button></div>
+                  <div class="hint">Drag · Scroll</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- (1,3) fixed zxyzx -->
+            <div class="card">
+              <div class="cardHead">
+                <div class="title">Fixed (z→x→y→z→x)</div>
+                <div class="tag">Offline Mesh</div>
+              </div>
+              <div class="media">
+                <div class="viewer" data-kind="ply-mesh" data-src="assets/ablation/xyz.ply" data-normal="1">
+                  <div class="overlay">Scroll to load 3D…</div>
+                  <div class="normalLegend"></div>
+                  <div class="controlsBar"><button class="btn">Reset view</button></div>
+                  <div class="hint">Drag · Scroll</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- (2,1) x-only -->
+            <div class="card">
+              <div class="cardHead">
+                <div class="title">x-only</div>
+                <div class="tag">Offline Mesh</div>
+              </div>
+              <div class="media">
+                <div class="viewer" data-kind="ply-mesh" data-src="assets/ablation/x.ply" data-normal="1">
+                  <div class="overlay">Scroll to load 3D…</div>
+                  <div class="normalLegend"></div>
+                  <div class="controlsBar"><button class="btn">Reset view</button></div>
+                  <div class="hint">Drag · Scroll</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- (2,2) y-only -->
+            <div class="card">
+              <div class="cardHead">
+                <div class="title">y-only</div>
+                <div class="tag">Offline Mesh</div>
+              </div>
+              <div class="media">
+                <div class="viewer" data-kind="ply-mesh" data-src="assets/ablation/y.ply" data-normal="1">
+                  <div class="overlay">Scroll to load 3D…</div>
+                  <div class="normalLegend"></div>
+                  <div class="controlsBar"><button class="btn">Reset view</button></div>
+                  <div class="hint">Drag · Scroll</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- (2,3) z-only -->
+            <div class="card">
+              <div class="cardHead">
+                <div class="title">z-only</div>
+                <div class="tag">Offline Mesh</div>
+              </div>
+              <div class="media">
+                <div class="viewer" data-kind="ply-mesh" data-src="assets/ablation/z.ply" data-normal="1">
+                  <div class="overlay">Scroll to load 3D…</div>
+                  <div class="normalLegend"></div>
+                  <div class="controlsBar"><button class="btn">Reset view</button></div>
+                  <div class="hint">Drag · Scroll</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <p class="foot">
+            <b>Tip.</b> Click the small <b>Normals ▸</b> legend to expand/collapse the colorbar (so it never blocks the mesh).
+          </p>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- =========================
+         Discussion
+         ========================= -->
+    <section class="section" id="discussion">
+      <div class="container is-max-desktop">
+        <div class="discBlock">
+          <h2>Discussion — Comparison with Neural Feels</h2>
+          <p class="subtitle">
+            We compare AURORA with Neural Feels under a matched <b>30 s</b> interaction budget on <i>Pepper</i>.
+            Our method achieves higher <b>F@5mm</b> and produces more complete geometry via active replanning and stable in-palm reorientation.
+          </p>
+
+          <figure class="disc-fig">
+            <img src="assets/ablation/vs_suresh.png"
+                 alt="F@5mm comparison: ours vs Neural Feels"
+                 loading="lazy">
+            <figcaption>
+              <b>F@5mm</b> over time (Pepper, 30 s). Ours reaches <b>0.8890</b>, vs. <b>0.5907</b> reported by Neural Feels.
+            </figcaption>
+          </figure>
+
+          <div class="discGrid">
+            <!-- RGB -->
+            <div class="card">
+              <div class="discHead">
+                <div class="title">Pepper (RGB)</div>
+<!--                <div class="tag">assets/ablation/rgb.png</div>-->
+              </div>
+              <div class="discMedia">
+                <img src="assets/ablation/rgb.png" alt="pepper rgb" loading="lazy" style="width:100%; height:100%; object-fit:contain;">
+              </div>
+            </div>
+
+            <!-- Ours mesh (PLY) -->
+            <div class="card">
+              <div class="discHead">
+                <div class="title">Ours</div>
+<!--                <div class="tag">assets/ablation/ours.ply</div>-->
+              </div>
+              <div class="discMedia">
+                <div class="viewer" data-kind="ply-mesh" data-src="assets/ablation/ours.ply" data-normal="1">
+                  <div class="overlay">Scroll to load 3D…</div>
+                  <div class="normalLegend"></div>
+                  <div class="controlsBar"><button class="btn">Reset view</button></div>
+                  <div class="hint">Drag · Scroll</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Neural Feels mesh (OBJ) -->
+            <div class="card">
+              <div class="discHead">
+                <div class="title">NeuralFeels</div>
+<!--                <div class="tag">assets/ablation/neuralfeels.obj</div>-->
+              </div>
+              <div class="discMedia">
+                <div class="viewer" data-kind="obj-mesh" data-src="assets/ablation/neuralfeels.obj">
+                  <div class="overlay">Scroll to load 3D…</div>
+                  <div class="controlsBar"><button class="btn">Reset view</button></div>
+                  <div class="hint">Drag · Scroll</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <p class="foot">
+            <b>Efficiency.</b> Neural Feels reports <b>417.13 s</b> wall-clock time for reconstruction from a 30 s window,
+            while ours completes the same stage in <b>61.82 s</b> (~6.7× faster), enabling substantially lower end-to-end latency.
+          </p>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      <div class="columns is-centered">
+        <div class="column is-8">
+          <div class="content">
+            <p>
+              This page was built using the
+              <a href="https://github.com/eliahuhorwitz/Academic-project-page-template" target="_blank">Academic Project Page Template</a>
+              adopted from the <a href="https://nerfies.github.io" target="_blank">Nerfies</a> project page.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Three.js importmap -->
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+    }
+  }
+  </script>
+
+  <!-- ONE unified module script -->
+  <script type="module">
+    import * as THREE from "three";
+    import { OrbitControls } from "three/addons/controls/OrbitControls.js";
+    import { PLYLoader } from "three/addons/loaders/PLYLoader.js";
+    import { OBJLoader } from "three/addons/loaders/OBJLoader.js";
+
+    // ---------------------------
+    // Exp1 assets
+    // ---------------------------
+    const EXP1_ITEMS = [
+      { key:"cube",     name:"Cube",           rgb:"assets/qual/cube_rgb.png",     pcd:"assets/pcd/cube_online.ply",     mesh:"assets/mesh/cube_offline.ply" },
+      { key:"corner",   name:"Corner Block",   rgb:"assets/qual/corner_rgb.png",   pcd:"assets/pcd/corner_online.ply",   mesh:"assets/mesh/corner_offline.ply" },
+      { key:"lblock",   name:"L-shaped Block", rgb:"assets/qual/lblock_rgb.png",   pcd:"assets/pcd/lblock_online.ply",   mesh:"assets/mesh/lblock_offline.ply" },
+      { key:"pepper",   name:"Pepper",         rgb:"assets/qual/pepper_rgb.png",   pcd:"assets/pcd/pepper_online.ply",   mesh:"assets/mesh/pepper_offline.ply" },
+      { key:"cylinder", name:"Cylinder",       rgb:"assets/qual/cylinder_rgb.png", pcd:"assets/pcd/cylinder_online.ply", mesh:"assets/mesh/cylinder_offline.ply" },
+      { key:"cross",    name:"Cross Block",    rgb:"assets/qual/cross_rgb.png",    pcd:"assets/pcd/cross_online.ply",    mesh:"assets/mesh/cross_offline.ply" },
+    ];
+
+    // ---------------------------
+    // Collapsible normal legend
+    // ---------------------------
+    function initNormalLegend(el){
+      if (!el) return;
+      el.innerHTML = `
+        <div class="nl-head">
+          <div>Normals</div><span>▸</span>
+        </div>
+        <div class="nl-body">
+          <div style="opacity:.85; margin-top:2px;">R=nx, G=ny, B=nz</div>
+          <div class="nl-row">
+            <div class="nl-lbl" style="color:#b00000;">R</div>
+            <div class="nl-bar" style="background: linear-gradient(90deg, rgb(0,0,0), rgb(255,0,0));"></div>
+          </div>
+          <div class="nl-row">
+            <div class="nl-lbl" style="color:#007000;">G</div>
+            <div class="nl-bar" style="background: linear-gradient(90deg, rgb(0,0,0), rgb(0,255,0));"></div>
+          </div>
+          <div class="nl-row">
+            <div class="nl-lbl" style="color:#0030b0;">B</div>
+            <div class="nl-bar" style="background: linear-gradient(90deg, rgb(0,0,0), rgb(0,0,255));"></div>
+          </div>
+          <div class="nl-minmax"><span>-1</span><span>+1</span></div>
+        </div>
+      `;
+      el.classList.remove("open");
+      const head = el.querySelector(".nl-head");
+      head.addEventListener("click", () => {
+        el.classList.toggle("open");
+        const caret = head.querySelector("span");
+        caret.textContent = el.classList.contains("open") ? "▾" : "▸";
+      });
+    }
+
+    // ---------------------------
+    // Exp1 grid builder (inject viewers with dataset)
+    // ---------------------------
+    const qualGrid = document.getElementById("qualGrid");
+
+    function mkCard({ title, tag, bodyEl }) {
+      const card = document.createElement("div");
+      card.className = "card";
+      const header = document.createElement("div");
+      header.className = "cardHeader";
+
+      const t = document.createElement("div");
+      t.className = "objname";
+      t.textContent = title;
+
+      const g = document.createElement("div");
+      g.className = "tag";
+      g.textContent = tag;
+
+      header.appendChild(t);
+      header.appendChild(g);
+      card.appendChild(header);
+      card.appendChild(bodyEl);
+      return card;
+    }
+
+    function mkImageMedia(src) {
+      const media = document.createElement("div");
+      media.className = "media";
+      const img = document.createElement("img");
+      img.src = src;
+      img.loading = "lazy";
+      img.alt = "object image";
+      media.appendChild(img);
+      return media;
+    }
+
+    function mkViewerMedia({ withLegend=false } = {}) {
+      const media = document.createElement("div");
+      media.className = "media";
+
+      const viewer = document.createElement("div");
+      viewer.className = "viewer";
+      media.appendChild(viewer);
+
+      const overlay = document.createElement("div");
+      overlay.className = "overlay";
+      overlay.textContent = "Scroll to load 3D…";
+      viewer.appendChild(overlay);
+
+      const controlsBar = document.createElement("div");
+      controlsBar.className = "controlsBar";
+      const btnReset = document.createElement("button");
+      btnReset.className = "btn";
+      btnReset.textContent = "Reset view";
+      controlsBar.appendChild(btnReset);
+      viewer.appendChild(controlsBar);
+
+      const hint = document.createElement("div");
+      hint.className = "hint";
+      hint.textContent = "Drag · Scroll";
+      viewer.appendChild(hint);
+
+      if (withLegend) {
+        const legend = document.createElement("div");
+        legend.className = "normalLegend";
+        viewer.appendChild(legend);
+        initNormalLegend(legend);
+      }
+
+      return { media, viewer };
+    }
+
+    function addRow(item){
+      const rgbCard = mkCard({ title: item.name, tag: "RGB", bodyEl: mkImageMedia(item.rgb) });
+
+      const pcdV = mkViewerMedia({ withLegend:false });
+      const pcdCard = mkCard({ title: item.name, tag: "Online PCD", bodyEl: pcdV.media });
+
+      const meshV = mkViewerMedia({ withLegend:true });
+      const meshCard = mkCard({ title: item.name, tag: "Offline Mesh", bodyEl: meshV.media });
+
+      qualGrid.appendChild(rgbCard);
+      qualGrid.appendChild(pcdCard);
+      qualGrid.appendChild(meshCard);
+
+      pcdV.viewer.dataset.kind = "ply-points";
+      pcdV.viewer.dataset.src  = item.pcd;
+
+      meshV.viewer.dataset.kind = "ply-mesh";
+      meshV.viewer.dataset.src  = item.mesh;
+      meshV.viewer.dataset.normal = "1";
+    }
+
+    if (qualGrid) EXP1_ITEMS.forEach(addRow);
+
+    // Init legends already in DOM (exp2/discussion)
+    document.querySelectorAll(".normalLegend").forEach(initNormalLegend);
+
+    // ---------------------------
+    // Lazy mount/unmount (single global)
+    // ---------------------------
+    const active = new Map();      // el -> viewerObj
+    const renderList = [];         // viewerObjs
+
+    const io = new IntersectionObserver((entries) => {
+      for (const e of entries) {
+        const el = e.target;
+        if (e.isIntersecting) mount(el);
+        else unmount(el);
+      }
+    }, { threshold: 0.15, rootMargin: "300px" });
+
+    document.querySelectorAll(".viewer[data-kind][data-src]").forEach(v => io.observe(v));
+
+    function mount(el){
+      if (active.has(el)) return;
+
+      const kind = el.dataset.kind;
+      const src  = el.dataset.src;
+
+      const overlayEl = el.querySelector(".overlay");
+      const resetBtn  = el.querySelector(".btn");
+      const wantNormal = el.dataset.normal === "1";
+
+      let viewerObj = null;
+      if (kind === "ply-points") viewerObj = createPLYViewer({ container: el, src, mode: "points", normalColormap: false, overlayEl, resetBtn });
+      if (kind === "ply-mesh")   viewerObj = createPLYViewer({ container: el, src, mode: "mesh",   normalColormap: wantNormal, overlayEl, resetBtn });
+      if (kind === "obj-mesh")   viewerObj = createOBJViewer({ container: el, src, overlayEl, resetBtn });
+
+      if (!viewerObj) return;
+
+      active.set(el, viewerObj);
+      renderList.push(viewerObj);
+    }
+
+    function unmount(el){
+      const viewerObj = active.get(el);
+      if (!viewerObj) return;
+
+      viewerObj.dispose?.();
+      const canvas = el.querySelector("canvas");
+      if (canvas) canvas.remove();
+
+      active.delete(el);
+      const idx = renderList.indexOf(viewerObj);
+      if (idx >= 0) renderList.splice(idx, 1);
+
+      const overlayEl = el.querySelector(".overlay");
+      if (overlayEl) {
+        overlayEl.style.display = "flex";
+        overlayEl.textContent = "Scroll to load 3D…";
+      }
+    }
+
+    // ---------------------------
+    // Shared camera utilities
+    // ---------------------------
+    function fitCameraToObject(camera, controls, object, offset=1.25){
+      const box = new THREE.Box3().setFromObject(object);
+      const size = box.getSize(new THREE.Vector3());
+      const center = box.getCenter(new THREE.Vector3());
+      const maxSize = Math.max(size.x, size.y, size.z);
+
+      const dist = (maxSize / (2 * Math.tan((Math.PI * camera.fov) / 360))) * offset;
+      const v = new THREE.Vector3(1, 0.8, 1).normalize();
+      camera.position.copy(center.clone().add(v.multiplyScalar(dist)));
+      camera.near = Math.max(dist / 200, 1e-6);
+      camera.far  = dist * 200;
+      camera.updateProjectionMatrix();
+
+      controls.target.copy(center);
+      controls.update();
+      return { pos: camera.position.clone(), tgt: controls.target.clone(), zoom: camera.zoom };
+    }
+
+    function normalizeObjectScale(obj, target=1.0){
+      const box = new THREE.Box3().setFromObject(obj);
+      const size = box.getSize(new THREE.Vector3());
+      const maxSize = Math.max(size.x, size.y, size.z);
+      if (!isFinite(maxSize) || maxSize <= 0) return;
+      const s = target / maxSize;
+      obj.scale.setScalar(s);
+    }
+
+    // ---------------------------
+    // PLY viewer (robust fetch+parse)
+    // ---------------------------
+    function createPLYViewer({ container, src, mode, normalColormap, overlayEl, resetBtn }) {
+      const renderer = new THREE.WebGLRenderer({ antialias:false, alpha:false, powerPreference:"low-power" });
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
+      renderer.setClearColor(0xffffff, 1);
+      container.appendChild(renderer.domElement);
+
+      const scene = new THREE.Scene();
+      scene.background = new THREE.Color(0xffffff);
+
+      const camera = new THREE.PerspectiveCamera(45, 1, 0.001, 1e6);
+      camera.position.set(0.45, 0.35, 0.45);
+
+      const controls = new OrbitControls(camera, renderer.domElement);
+      controls.enableDamping = true;
+      controls.dampingFactor = 0.08;
+
+      scene.add(new THREE.AmbientLight(0xffffff, 0.9));
+      const dir = new THREE.DirectionalLight(0xffffff, 0.85);
+      dir.position.set(1.2, 1.0, 1.1);
+      scene.add(dir);
+
+      let obj3d = null;
+      let initCam = null;
+
+      const ro = new ResizeObserver(resize);
+      ro.observe(container);
+
+      function resize(){
+        const w = container.clientWidth || 1;
+        const h = container.clientHeight || 1;
+        renderer.setSize(w, h, false);
+        camera.aspect = w / h;
+        camera.updateProjectionMatrix();
+      }
+
+      if (resetBtn) {
+        resetBtn.addEventListener("click", () => {
+          if(!initCam) return;
+          camera.position.copy(initCam.pos);
+          controls.target.copy(initCam.tgt);
+          camera.zoom = initCam.zoom;
+          camera.updateProjectionMatrix();
+          controls.update();
+        });
+      }
+
+      renderer.domElement.addEventListener("webglcontextlost", (ev) => {
+        ev.preventDefault();
+        if (overlayEl) {
+          overlayEl.style.display = "flex";
+          overlayEl.textContent = "WebGL context lost. Scroll away and back.";
+        }
+      }, false);
+
+      const loader = new PLYLoader();
+
+      async function loadPLY(){
+        try{
+          if (overlayEl) { overlayEl.style.display = "flex"; overlayEl.textContent = "Loading 3D…"; }
+
+          const res = await fetch(src, { cache: "no-store" });
+          if (!res.ok) throw new Error(`HTTP ${res.status} ${res.statusText}`);
+          const buf = await res.arrayBuffer();
+
+          const headStr = new TextDecoder().decode(buf.slice(0, 200));
+          if (headStr.includes("git-lfs.github.com/spec")) {
+            throw new Error("Git-LFS pointer detected. Replace with real .ply file.");
+          }
+
+          const geometry = headStr.includes("format ascii")
+            ? loader.parse(new TextDecoder().decode(buf))
+            : loader.parse(buf);
+
+          if (mode === "mesh") geometry.computeVertexNormals();
+
+          // normal->color
+          if (mode === "mesh" && normalColormap) {
+            const nAttr = geometry.getAttribute("normal");
+            if (nAttr) {
+              const colors = new Float32Array(nAttr.count * 3);
+              for (let i=0; i<nAttr.count; i++){
+                const nx=nAttr.getX(i), ny=nAttr.getY(i), nz=nAttr.getZ(i);
+                colors[3*i+0]=0.5*(nx+1);
+                colors[3*i+1]=0.5*(ny+1);
+                colors[3*i+2]=0.5*(nz+1);
+              }
+              geometry.setAttribute("color", new THREE.BufferAttribute(colors, 3));
+            }
+          }
+
+          if (obj3d) {
+            scene.remove(obj3d);
+            disposeObject(obj3d);
+            obj3d = null;
+          }
+
+          if (mode === "points") {
+            geometry.computeBoundingBox();
+            const bb = geometry.boundingBox;
+            const sz = bb.getSize(new THREE.Vector3());
+            const maxSize = Math.max(sz.x, sz.y, sz.z);
+            const pointSize = THREE.MathUtils.clamp(maxSize * 0.01, 0.002, 1.5);
+
+            const hasColor = geometry.hasAttribute("color");
+            const mat = new THREE.PointsMaterial({
+              size: pointSize,
+              sizeAttenuation: true,
+              vertexColors: hasColor,
+              color: hasColor ? 0xffffff : 0x111111,
+              transparent: true,
+              opacity: 0.98
+            });
+            obj3d = new THREE.Points(geometry, mat);
+          } else {
+            const mat = new THREE.MeshStandardMaterial({
+              metalness: 0.05,
+              roughness: 0.85,
+              vertexColors: true
+            });
+            obj3d = new THREE.Mesh(geometry, mat);
+          }
+
+          // center + normalize scale
+          geometry.computeBoundingBox();
+          const center = geometry.boundingBox.getCenter(new THREE.Vector3());
+          obj3d.position.sub(center);
+          normalizeObjectScale(obj3d, 1.0);
+
+          scene.add(obj3d);
+          initCam = fitCameraToObject(camera, controls, obj3d, 1.35);
+
+          if (overlayEl) overlayEl.style.display = "none";
+          resize();
+        } catch(e){
+          console.error("PLY load failed:", src, e);
+          if (overlayEl) {
+            overlayEl.style.display = "flex";
+            overlayEl.textContent = `PLY error: ${String(e).slice(0, 160)}`;
+          }
+        }
+      }
+
+      function disposeObject(o){
+        o.traverse?.((n) => {
+          if (n.geometry) n.geometry.dispose?.();
+          if (n.material) {
+            if (Array.isArray(n.material)) n.material.forEach(m => m.dispose?.());
+            else n.material.dispose?.();
+          }
+        });
+      }
+
+      loadPLY();
+      resize();
+
+      function render(){
+        controls.update();
+        renderer.render(scene, camera);
+      }
+
+      function dispose(){
+        ro.disconnect();
+        if (obj3d) { scene.remove(obj3d); disposeObject(obj3d); obj3d=null; }
+        renderer.dispose();
+        renderer.forceContextLoss?.();
+      }
+
+      return { render, dispose };
+    }
+
+    // ---------------------------
+    // OBJ viewer
+    // ---------------------------
+    function createOBJViewer({ container, src, overlayEl, resetBtn }) {
+      const renderer = new THREE.WebGLRenderer({ antialias:false, alpha:false, powerPreference:"low-power" });
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
+      renderer.setClearColor(0xffffff, 1);
+      container.appendChild(renderer.domElement);
+
+      const scene = new THREE.Scene();
+      scene.background = new THREE.Color(0xffffff);
+
+      const camera = new THREE.PerspectiveCamera(45, 1, 0.001, 1e6);
+      camera.position.set(0.45, 0.35, 0.45);
+
+      const controls = new OrbitControls(camera, renderer.domElement);
+      controls.enableDamping = true;
+      controls.dampingFactor = 0.08;
+
+      scene.add(new THREE.AmbientLight(0xffffff, 0.9));
+      const dir = new THREE.DirectionalLight(0xffffff, 0.85);
+      dir.position.set(1.2, 1.0, 1.1);
+      scene.add(dir);
+
+      let rootObj = null;
+      let initCam = null;
+
+      const ro = new ResizeObserver(resize);
+      ro.observe(container);
+
+      function resize(){
+        const w = container.clientWidth || 1;
+        const h = container.clientHeight || 1;
+        renderer.setSize(w, h, false);
+        camera.aspect = w / h;
+        camera.updateProjectionMatrix();
+      }
+
+      if (resetBtn) {
+        resetBtn.addEventListener("click", () => {
+          if(!initCam) return;
+          camera.position.copy(initCam.pos);
+          controls.target.copy(initCam.tgt);
+          camera.zoom = initCam.zoom;
+          camera.updateProjectionMatrix();
+          controls.update();
+        });
+      }
+
+      async function load(){
+        try{
+          if (overlayEl) { overlayEl.style.display = "flex"; overlayEl.textContent = "Loading 3D…"; }
+
+          const objLoader = new OBJLoader();
+          rootObj = await new Promise((resolve, reject) => {
+            objLoader.load(src, resolve, undefined, reject);
+          });
+
+          rootObj.traverse((n) => {
+            if (!n.isMesh) return;
+            n.material = new THREE.MeshStandardMaterial({
+              color: 0xdddddd,
+              metalness: 0.02,
+              roughness: 0.9
+            });
+            n.geometry.computeVertexNormals?.();
+          });
+
+          // center + normalize
+          const box = new THREE.Box3().setFromObject(rootObj);
+          const center = box.getCenter(new THREE.Vector3());
+          rootObj.position.sub(center);
+          normalizeObjectScale(rootObj, 1.0);
+
+          scene.add(rootObj);
+          initCam = fitCameraToObject(camera, controls, rootObj, 1.35);
+
+          if (overlayEl) overlayEl.style.display = "none";
+          resize();
+        } catch(e){
+          console.error("OBJ load failed:", src, e);
+          if (overlayEl){
+            overlayEl.style.display = "flex";
+            overlayEl.textContent = `OBJ error: ${String(e).slice(0,160)}`;
+          }
+        }
+      }
+
+      function disposeObject(o){
+        o.traverse?.((n) => {
+          if (n.geometry) n.geometry.dispose?.();
+          if (n.material) {
+            if (Array.isArray(n.material)) n.material.forEach(m => m.dispose?.());
+            else n.material.dispose?.();
+          }
+        });
+      }
+
+      function render(){
+        controls.update();
+        renderer.render(scene, camera);
+      }
+
+      function dispose(){
+        ro.disconnect();
+        if (rootObj){ scene.remove(rootObj); disposeObject(rootObj); rootObj=null; }
+        renderer.dispose();
+        renderer.forceContextLoss?.();
+      }
+
+      load();
+      resize();
+      return { render, dispose };
+    }
+
+    // ---------------------------
+    // Render loop (single)
+    // ---------------------------
+    function animate(){
+      requestAnimationFrame(animate);
+      for (const v of renderList) v.render();
+    }
+    animate();
+  </script>
+</body>
+</html>
