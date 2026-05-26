@@ -355,7 +355,7 @@
     .discMedia.imgOnly img{ width:100%; height:100%; object-fit: contain; }
 
     @media (max-width: 980px){
-      .qual-grid{ grid-template-columns: 1fr; }
+      .qual-grid, .qual-grid-4col{ grid-template-columns: 1fr; }
       .colhead{ display:none; }
       .media{ height: 260px; }
       .meshgrid-2x3, .discGrid{ grid-template-columns: 1fr; }
@@ -393,6 +393,56 @@
       margin-top: 8px;
       font-size: 0.92rem;
       opacity: 0.85;
+    }
+
+    /* Temporal Sliders Styling */
+    .time-slider-wrap {
+      background: rgba(0,0,0,.01);
+      border-top: 1px solid rgba(0,0,0,.05);
+    }
+    .mesh-time-slider {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 100%;
+      height: 6px;
+      border-radius: 3px;
+      background: rgba(0,0,0,.08);
+      outline: none;
+    }
+    .mesh-time-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: var(--theme-color, #2563eb);
+      cursor: pointer;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.25);
+      border: none;
+      transition: transform 0.1s ease;
+    }
+    .mesh-time-slider::-webkit-slider-thumb:hover {
+      transform: scale(1.15);
+    }
+    .mesh-time-slider::-moz-range-thumb {
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: var(--theme-color, #2563eb);
+      cursor: pointer;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.25);
+      border: none;
+      transition: transform 0.1s ease;
+    }
+    .mesh-time-slider::-moz-range-thumb:hover {
+      transform: scale(1.15);
+    }
+
+    .qual-grid-4col {
+      display: grid;
+      grid-template-columns: 1.1fr 1fr 1fr 1fr; 
+      gap: var(--gap);
+      margin-top: 10px;
     }
 
   </style>
@@ -452,15 +502,18 @@
             <h2 class="title is-3">Abstract</h2>
             <div class="content has-text-justified">
               <p>
-                Recovering complete 3D geometry of robot-held objects is fundamentally limited by observability. The manipulator occludes the object,
-                and only a small set of viewpoints is accessible during grasping, leaving large surface regions unobserved. Although in-hand manipulation
-                can reveal these regions, most existing methods rely on fixed manipulation sequences and lack closed-loop reasoning about missing views.
-                To bridge the gap, we present AURORA, an active in-hand 3D reconstruction framework that integrates perception, uncertainty-aware planning,
-                and in-hand manipulation. Its core component Ray-GPIS estimates reconstruction uncertainty over viewing directions and selects next-best-view
-                object reorientations that maximize information gain. These reorientations are executed using an axis-conditioned in-hand rotation policy.
-                The observed manipulation sequence is processed through object segmentation, online 6D pose tracking, and incremental RGB-D fusion to produce
-                efficient and high-fidelity reconstructions. Extensive real-world experiments on objects with diverse geometries show that AURORA consistently
-                outperforms open-loop baselines, achieving higher completeness, faster convergence, and robust performance across varied shapes.
+                Observing objects grasped by a robot hand is challenging due to severe visual occlusions. 
+                The manipulator itself obscures large portions of the object, while a fixed camera provides 
+                viewpoint-constrained observations. Although these hidden surfaces can be exposed by in-hand 
+                manipulation, most existing approaches rely on predefined or open-loop reorientation strategies 
+                that do not explicitly target unobserved regions.To address this limitation, we propose AURORA, 
+                an active 3D reconstruction framework that leverages in-hand manipulation for object inspection. 
+                At the core of AURORA is Ray-GPIS, a novel informative planner that estimates reconstruction uncertainty 
+                along candidate viewing rays. By identifying directions that maximize uncertainty-novelty score, Ray-GPIS 
+                generates next-best-view targets, which are executed via an axis-conditioned in-hand rotation policy.
+                The resulting visual observations are integrated through a visual fusion pipeline for incremental 3D reconstruction. 
+                Extensive real-world experiments on objects with diverse geometries demonstrate that AURORA outperforms baselines, 
+                achieving higher surface completeness and faster reconstruction.
               </p>
             </div>
           </div>
@@ -486,7 +539,7 @@
     </section>
 
     <!-- =========================
-         Experiment I + II
+         Experiment I + II + III
          ========================= -->
     <section class="section" id="experiments">
       <div class="container is-max-desktop">
@@ -539,7 +592,7 @@
           <div class="tableWrap">
             <div class="tableTitle">
               <b>Table.</b> Quantitative results after a fixed <span class="bold">30 s</span> budget.
-              We report F-scores <span class="bold">F@τ</span> (higher is better), where F@τ is the harmonic mean of precision and recall within tolerance τ.
+              We report F-scores <span class="bold">\(F@\tau\)</span> (higher is better), where F@τ is the harmonic mean of precision and recall within tolerance τ.
             </div>
 
             <div style="overflow:auto;">
@@ -582,18 +635,107 @@
         <div class="expBlock exp2" id="exp2" style="margin-top:18px;">
           <h2>Experiment II — Efficiency vs Non-active Baselines</h2>
           <p class="subtitle">
-            We compare five rotation strategies using the temporal evolution of the uncertainty tail \(q_{95}\):
+            We compare five rotation strategies using the temporal evolution of the uncertainty tail \(q_{95}\) and Mesh--Mesh F-score at the 5mm threshold:
             <b>ours</b>, a fixed schedule \(z\!\rightarrow\!x\!\rightarrow\!y\!\rightarrow\!z\!\rightarrow\!x\), and single-axis baselines (\(x\)-only/\(y\)-only/\(z\)-only).
             Below, we show the offline refined meshes for all five strategies (normal colormap).
           </p>
 
           <figure>
-            <img src="static/images/efficiency.png" alt="q95 uncertainty curves" loading="lazy">
+            <img src="static/images/combined_single_plot.png" alt="q95 uncertainty curves" loading="lazy">
             <figcaption>
-              <b>\(q_{95}\) uncertainty</b> over time (avg. over 6 objects) under five rotation strategies:
-              <b>ours</b>, fixed <b>\(z\!\rightarrow\!x\!\rightarrow\!y\!\rightarrow\!z\!\rightarrow\!x\)</b>, and <b>\(x\)-only</b>, <b>\(y\)-only</b>, <b>\(z\)-only</b>.
+              Online reconstruction efficiency under different rotation strategies, averaged over six objects. The curves show the <b>\(q_{95}\) uncertainty</b> and <b>\(F@5\)</b> threshold within a \(30\,\mathrm{s}\) budget.
             </figcaption>
           </figure>
+
+          <div class="tableWrap">
+            <div class="tableTitle">
+              <b>Table.</b> Comparison with non-active baselines and state-of-the-art open-loop methods. We report F-scores <b>\(F@\tau\)</b> (higher is better) for Mean PCD–PCD and Mean Mesh–Mesh.
+            </div>
+            <div style="overflow:auto;">
+              <table>
+                <thead>
+                  <tr>
+                    <th rowspan="2">Baseline</th>
+                    <th colspan="3">Mean PCD–PCD</th>
+                    <th colspan="3">Mean Mesh–Mesh</th>
+                  </tr>
+                  <tr>
+                    <th>\(F@2\ \uparrow\)</th>
+                    <th>\(F@5\ \uparrow\)</th>
+                    <th>\(F@10\ \uparrow\)</th>
+                    <th>\(F@2\ \uparrow\)</th>
+                    <th>\(F@5\ \uparrow\)</th>
+                    <th>\(F@10\ \uparrow\)</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>\(x\)-axis</td>
+                    <td>0.1735</td>
+                    <td>0.6625</td>
+                    <td>0.8655</td>
+                    <td>0.3595</td>
+                    <td>0.6211</td>
+                    <td>0.8440</td>
+                  </tr>
+                  <tr>
+                    <td>\(y\)-axis</td>
+                    <td>0.1463</td>
+                    <td>0.6074</td>
+                    <td>0.7933</td>
+                    <td>0.3082</td>
+                    <td>0.5643</td>
+                    <td>0.7498</td>
+                  </tr>
+                  <tr>
+                    <td>\(z\)-axis</td>
+                    <td>0.2079</td>
+                    <td>0.7786</td>
+                    <td>0.9228</td>
+                    <td>0.4414</td>
+                    <td>0.7231</td>
+                    <td>0.8872</td>
+                  </tr>
+                  <tr>
+                    <td>Fixed schedule</td>
+                    <td>0.1550</td>
+                    <td>0.7015</td>
+                    <td>0.8995</td>
+                    <td>0.4544</td>
+                    <td>0.6948</td>
+                    <td>0.8904</td>
+                  </tr>
+                  <!-- <tr style="border-top: 1.5px solid var(--border);">
+                    <td>TRELLIS.2</td>
+                    <td>--</td>
+                    <td>--</td>
+                    <td>--</td>
+                    <td>0.6538</td>
+                    <td>0.8315</td>
+                    <td>0.9017</td>
+                  </tr>
+                  <tr>
+                    <td>SPAR3D</td>
+                    <td>--</td>
+                    <td>--</td>
+                    <td>--</td>
+                    <td>0.5571</td>
+                    <td>0.7386</td>
+                    <td>0.9483</td>
+                  </tr> -->
+                  <tr style="border-top: 1.5px solid var(--border);" class="bold">
+                    <td>Ours (Active)</td>
+                    <td>0.2534</td>
+                    <td>0.8249</td>
+                    <td>0.9671</td>
+                    <td>0.5095</td>
+                    <td>0.8624</td>
+                    <td>0.9672</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
 
           <!-- 2×3 grid -->
           <div class="meshgrid-2x3">
@@ -604,96 +746,295 @@
                 <div class="tag">Captured view</div>
               </div>
               <div class="media">
-                <img src="assets/ablation/rgb.png" alt="pepper rgb" loading="lazy">
+                <img src="assets/ablation/cross_rgb.png" alt="pepper rgb" loading="lazy">
               </div>
             </div>
 
             <!-- (1,2) ours -->
-            <div class="card">
+            <div class="card" style="height: auto; min-height: unset; padding-bottom: 8px;">
               <div class="cardHead">
                 <div class="title">Ours (Closed-loop)</div>
                 <div class="tag">Offline Mesh</div>
               </div>
               <div class="media">
-                <div class="viewer" data-kind="ply-mesh" data-src="assets/ablation/ours.ply" data-normal="1">
+                <div class="viewer" data-kind="ply-mesh" data-src-pattern="assets/mesh/temporal/cross/{time}s.ply" data-normal="1">
                   <div class="overlay">Scroll to load 3D…</div>
                   <div class="normalLegend"></div>
                   <div class="controlsBar"><button class="btn">Reset view</button></div>
                   <div class="hint">Drag · Scroll</div>
                 </div>
               </div>
+              <div class="time-slider-wrap" style="padding: 10px 14px 4px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                  <span style="font-size: 11px; font-weight: 800; color: var(--muted); font-family: var(--mono);">Reconstruction Step:</span>
+                  <span class="slider-val-label" style="font-size: 11px; font-weight: 900; color: var(--text); font-family: var(--mono);">30s</span>
+                </div>
+                <input type="range" class="mesh-time-slider" min="6" max="30" step="6" value="30" style="width: 100%; cursor: pointer;">
+              </div>
             </div>
 
             <!-- (1,3) fixed zxyzx -->
-            <div class="card">
+            <div class="card" style="height: auto; min-height: unset; padding-bottom: 8px;">
               <div class="cardHead">
                 <div class="title">Fixed (z→x→y→z→x)</div>
                 <div class="tag">Offline Mesh</div>
               </div>
               <div class="media">
-                <div class="viewer" data-kind="ply-mesh" data-src="assets/ablation/xyz.ply" data-normal="1">
+                <div class="viewer" data-kind="ply-mesh" data-src-pattern="assets/mesh/temporal/xyz/{time}s.ply" data-normal="1">
                   <div class="overlay">Scroll to load 3D…</div>
                   <div class="normalLegend"></div>
                   <div class="controlsBar"><button class="btn">Reset view</button></div>
                   <div class="hint">Drag · Scroll</div>
                 </div>
               </div>
+              <div class="time-slider-wrap" style="padding: 10px 14px 4px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                  <span style="font-size: 11px; font-weight: 800; color: var(--muted); font-family: var(--mono);">Reconstruction Step:</span>
+                  <span class="slider-val-label" style="font-size: 11px; font-weight: 900; color: var(--text); font-family: var(--mono);">30s</span>
+                </div>
+                <input type="range" class="mesh-time-slider" min="6" max="30" step="6" value="30" style="width: 100%; cursor: pointer;">
+              </div>
             </div>
 
             <!-- (2,1) x-only -->
-            <div class="card">
+            <div class="card" style="height: auto; min-height: unset; padding-bottom: 8px;">
               <div class="cardHead">
                 <div class="title">x-only</div>
                 <div class="tag">Offline Mesh</div>
               </div>
               <div class="media">
-                <div class="viewer" data-kind="ply-mesh" data-src="assets/ablation/x.ply" data-normal="1">
+                <div class="viewer" data-kind="ply-mesh" data-src-pattern="assets/mesh/temporal/x/{time}s.ply" data-normal="1">
                   <div class="overlay">Scroll to load 3D…</div>
                   <div class="normalLegend"></div>
                   <div class="controlsBar"><button class="btn">Reset view</button></div>
                   <div class="hint">Drag · Scroll</div>
                 </div>
               </div>
+              <div class="time-slider-wrap" style="padding: 10px 14px 4px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                  <span style="font-size: 11px; font-weight: 800; color: var(--muted); font-family: var(--mono);">Reconstruction Step:</span>
+                  <span class="slider-val-label" style="font-size: 11px; font-weight: 900; color: var(--text); font-family: var(--mono);">30s</span>
+                </div>
+                <input type="range" class="mesh-time-slider" min="6" max="30" step="6" value="30" style="width: 100%; cursor: pointer;">
+              </div>
             </div>
 
             <!-- (2,2) y-only -->
-            <div class="card">
+            <div class="card" style="height: auto; min-height: unset; padding-bottom: 8px;">
               <div class="cardHead">
                 <div class="title">y-only</div>
                 <div class="tag">Offline Mesh</div>
               </div>
               <div class="media">
-                <div class="viewer" data-kind="ply-mesh" data-src="assets/ablation/y.ply" data-normal="1">
+                <div class="viewer" data-kind="ply-mesh" data-src-pattern="assets/mesh/temporal/y/{time}s.ply" data-normal="1">
                   <div class="overlay">Scroll to load 3D…</div>
                   <div class="normalLegend"></div>
                   <div class="controlsBar"><button class="btn">Reset view</button></div>
                   <div class="hint">Drag · Scroll</div>
                 </div>
               </div>
+              <div class="time-slider-wrap" style="padding: 10px 14px 4px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                  <span style="font-size: 11px; font-weight: 800; color: var(--muted); font-family: var(--mono);">Reconstruction Step:</span>
+                  <span class="slider-val-label" style="font-size: 11px; font-weight: 900; color: var(--text); font-family: var(--mono);">30s</span>
+                </div>
+                <input type="range" class="mesh-time-slider" min="6" max="30" step="6" value="30" style="width: 100%; cursor: pointer;">
+              </div>
             </div>
 
             <!-- (2,3) z-only -->
-            <div class="card">
+            <div class="card" style="height: auto; min-height: unset; padding-bottom: 8px;">
               <div class="cardHead">
                 <div class="title">z-only</div>
                 <div class="tag">Offline Mesh</div>
               </div>
               <div class="media">
-                <div class="viewer" data-kind="ply-mesh" data-src="assets/ablation/z.ply" data-normal="1">
+                <div class="viewer" data-kind="ply-mesh" data-src-pattern="assets/mesh/temporal/z/{time}s.ply" data-normal="1">
                   <div class="overlay">Scroll to load 3D…</div>
                   <div class="normalLegend"></div>
                   <div class="controlsBar"><button class="btn">Reset view</button></div>
                   <div class="hint">Drag · Scroll</div>
                 </div>
               </div>
+              <div class="time-slider-wrap" style="padding: 10px 14px 4px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                  <span style="font-size: 11px; font-weight: 800; color: var(--muted); font-family: var(--mono);">Reconstruction Step:</span>
+                  <span class="slider-val-label" style="font-size: 11px; font-weight: 900; color: var(--text); font-family: var(--mono);">30s</span>
+                </div>
+                <input type="range" class="mesh-time-slider" min="6" max="30" step="6" value="30" style="width: 100%; cursor: pointer;">
+              </div>
             </div>
           </div>
+
+          <figure class="disc-fig" style="margin-top: 28px;">
+            <div class="discGrid" style="margin-top: 0; padding: 14px; gap: 14px;">
+              <div style="display: flex; flex-direction: column; align-items: center;"> 
+                <img src="static/images/fscore_nksr_vs_gt_fscore_at_0_002000.png" alt="Method A" style="border: 1px solid rgba(0,0,0,0.06); border-radius: 8px;">
+                <span style="font-size: 13px; color: var(--muted); margin-top: 6px;"><b>(a)</b></span>
+              </div>
+              <div style="display: flex; flex-direction: column; align-items: center;">
+                <img src="static/images/fscore_nksr_vs_gt_fscore_at_0_005000.png" alt="Method B" style="border: 1px solid rgba(0,0,0,0.06); border-radius: 8px;">
+                <span style="font-size: 13px; color: var(--muted); margin-top: 6px;"><b>(b)</b></span>
+              </div>
+              <div style="display: flex; flex-direction: column; align-items: center;">
+                <img src="static/images/fscore_nksr_vs_gt_fscore_at_0_010000.png" alt="Method C" style="border: 1px solid rgba(0,0,0,0.06); border-radius: 8px;">
+                <span style="font-size: 13px; color: var(--muted); margin-top: 6px;"><b>(c)</b></span>
+              </div>
+            </div>
+            
+            <figcaption>
+              Temporal evolution of Mesh-Mesh F-scores for AURORA and non-active baselines under different distance tolerances: <b>(a)</b> \(2\,\mathrm{mm}\), 
+              <b>(b)</b> \(5\,\mathrm{mm}\), and <b>(c)</b> \(10\,\mathrm{mm}\), averaged over six objects.
+            </figcaption>
+          </figure>
 
           <p class="foot">
             <b>Tip.</b> Click the small <b>Normals ▸</b> legend to expand/collapse the colorbar (so it never blocks the mesh).
           </p>
         </div>
 
+        <!-- Exp3 -->
+        <div class="expBlock exp3" id="exp3" style="margin-top:18px;" >
+          <h2>Experiment III — Comparision with Single-View 3D Reconstruction Baselines</h2>
+          <p class="subtitle">
+            We further compare our method with recent single-view 3D reconstruction methods, 
+            <b>TRELLIS.2</b> and <b>SPAR3D</b>, as reference baselines.  For a well-defined 
+            comparison, we use the corresponding high-resolutionclean object image as input for each object. 
+            Because single-view methods do not preserve metric scale, we evaluate their meshes after post-hoc scale alignment to the ground truth;
+            their scores therefore reflect scale-normalized shape similarity rather than directly usable metric reconstructions.
+          </p>
+
+          <div class="tableWrap">
+            <div class="tableTitle">
+              <b>Table.</b> Mesh--Mesh reconstruction comparison with single-view 3D reconstruction baselines. 
+              <b>\(F@\tau\)</b> denotes the F-score under distance threshold \(\tau\), where higher is better.
+            </div>
+            <div style="overflow:auto;">
+              <table>
+                <thead>
+                  <tr>
+                    <th rowspan="2">Obj.</th>
+                    <th colspan="3">TRELLIS.2</th>
+                    <th colspan="3">SPAR3D</th>
+                    <th colspan="3">Ours (AURORA)</th>
+                  </tr>
+                  <tr>
+                    <th>\(F@2\ \uparrow\)</th>
+                    <th>\(F@5\ \uparrow\)</th>
+                    <th>\(F@10\ \uparrow\)</th>
+                    <th>\(F@2\ \uparrow\)</th>
+                    <th>\(F@5\ \uparrow\)</th>
+                    <th>\(F@10\ \uparrow\)</th>
+                    <th>\(F@2\ \uparrow\)</th>
+                    <th>\(F@5\ \uparrow\)</th>
+                    <th>\(F@10\ \uparrow\)</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>Cube</td>
+                    <td><b>0.8922</b></td>
+                    <td>0.9324</td>
+                    <td>0.9579</td>
+                    <td>0.4510</td>
+                    <td>0.5515</td>
+                    <td>0.8968</td>
+                    <td>0.6481</td>
+                    <td><b>0.9557</b></td>
+                    <td><b>0.9957</b></td>
+                  </tr>
+                  <tr>
+                    <td>Corner Block</td>
+                    <td>0.5140</td>
+                    <td>0.6447</td>
+                    <td>0.7833</td>
+                    <td>0.4507</td>
+                    <td>0.5331</td>
+                    <td>0.8686</td>
+                    <td><b>0.5298</b></td>
+                    <td><b>0.8559</b></td>
+                    <td><b>0.9488</b></td>
+                  </tr>
+                  <tr>
+                    <td>L-shaped Block</td>
+                    <td><b>0.8124</b></td>
+                    <td><b>0.9251</b></td>
+                    <td>0.9632</td>
+                    <td>0.5209</td>
+                    <td>0.7244</td>
+                    <td><b>0.9987</b></td>
+                    <td>0.4674</td>
+                    <td>0.8367</td>
+                    <td>0.9450</td>
+                  </tr>
+                  <tr>
+                    <td>Pepper</td>
+                    <td>0.6612</td>
+                    <td><b>0.9504</b></td>
+                    <td>0.9978</td>
+                    <td><b>0.6998</b></td>
+                    <td>0.9459</td>
+                    <td><b>1.0000</b></td>
+                    <td>0.5480</td>
+                    <td>0.8890</td>
+                    <td>0.9913</td>
+                  </tr>
+                  <tr>
+                    <td>Cylinder</td>
+                    <td>0.5884</td>
+                    <td>0.8861</td>
+                    <td>0.9423</td>
+                    <td><b>0.9030</b></td>
+                    <td><b>0.9963</b></td>
+                    <td><b>1.0000</b></td>
+                    <td>0.4035</td>
+                    <td>0.8320</td>
+                    <td>0.9372</td>
+                  </tr>
+                  <tr>
+                    <td>Cross Block</td>
+                    <td>0.4548</td>
+                    <td>0.6509</td>
+                    <td>0.7660</td>
+                    <td>0.3176</td>
+                    <td>0.6809</td>
+                    <td>0.9260</td>
+                    <td><b>0.4601</b></td>
+                    <td><b>0.8050</b></td>
+                    <td><b>0.9850</b></td>
+                  </tr>
+                  <tr style="border-top: 1.5px solid var(--border);">
+                    <td><b>Mean</b></td>
+                    <td><b>0.6538</b></td>
+                    <td>0.8316</td>
+                    <td>0.9018</td>
+                    <td>0.5572</td>
+                    <td>0.7387</td>
+                    <td>0.9484</td>
+                    <td>0.5095</td>
+                    <td><b>0.8624</b></td>
+                    <td><b>0.9672</b></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="qual-grid-4col" id="qualGrid3">
+            <div class="colhead">Input Picture</div>
+            <div class="colhead">TRELLIS.2</div>
+            <div class="colhead">SPAR3D</div>
+            <div class="colhead">Ours</div>
+            <!-- rows injected by JS -->
+          </div>
+          <p class="foot">
+            <b>Summary.</b> Our method achieves higher mean Mesh--Mesh F-scores than TRELLIS.2 and SPAR3D 
+            at the \(5\,\mathrm{mm}\) and \(10\,\mathrm{mm}\) thresholds across all evaluated objects. 
+            This suggests that actively acquiring additional observations improves metric reconstruction 
+            over single-view priors, especially for objects with distinct geometric features. Nevertheless, 
+            single-view methods produce relatively clean meshes, highlighting a direction for us to make future improvements.
+          </p>
+        </div>
       </div>
     </section>
 
@@ -710,11 +1051,11 @@
           </p>
 
           <figure class="disc-fig">
-            <img src="assets/ablation/vs_suresh.png"
+            <img src="static/images/vs_neuralfeels.png"
                  alt="F@5mm comparison: ours vs Neural Feels"
                  loading="lazy">
             <figcaption>
-              <b>F@5mm</b> over time (Pepper, 30 s). Ours reaches <b>0.8890</b>, vs. <b>0.5907</b> reported by Neural Feels.
+              <b>F@5mm</b> over time (Pepper, 30 s). Ours reaches <b>0.89</b>, vs. <b>0.76</b> reported by Neural Feels.
             </figcaption>
           </figure>
 
@@ -815,6 +1156,18 @@
       { key:"pepper",   name:"Pepper",         rgb:"assets/qual/pepper_rgb.png",   pcd:"assets/pcd/pepper_online.ply",   mesh:"assets/mesh/pepper_offline.ply" },
       { key:"cylinder", name:"Cylinder",       rgb:"assets/qual/cylinder_rgb.png", pcd:"assets/pcd/cylinder_online.ply", mesh:"assets/mesh/cylinder_offline.ply" },
       { key:"cross",    name:"Cross Block",    rgb:"assets/qual/cross_rgb.png",    pcd:"assets/pcd/cross_online.ply",    mesh:"assets/mesh/cross_offline.ply" },
+    ];
+
+    // ---------------------------
+    // Exp3 assets
+    // ---------------------------
+    const EXP3_ITEMS = [
+      { key:"cube",     name:"Cube",           rgb:"assets/qual/cube_rgb.png",     trellis:"assets/ablation/TRELLIS.2/cube.ply",     spar3d:"assets/ablation/Spar3D/mesh_cube.ply",  ours:"assets/mesh/cube_offline.ply" },
+      { key:"corner",   name:"Corner Block",   rgb:"assets/qual/corner_rgb.png",   trellis:"assets/ablation/TRELLIS.2/corner.ply",   spar3d:"assets/ablation/Spar3D/mesh_cube2.ply",  ours:"assets/mesh/corner_offline.ply" },
+      { key:"lblock",   name:"L-shaped Block", rgb:"assets/qual/lblock_rgb.png",   trellis:"assets/ablation/TRELLIS.2/lblock.ply",   spar3d:"assets/ablation/Spar3D/mesh_L.ply",  ours:"assets/mesh/lblock_offline.ply" },
+      { key:"pepper",   name:"Pepper",         rgb:"assets/qual/pepper_rgb.png",   trellis:"assets/ablation/TRELLIS.2/pepper.ply",   spar3d:"assets/ablation/Spar3D/mesh_pepper.ply",  ours:"assets/mesh/pepper_offline.ply" },
+      { key:"cylinder", name:"Cylinder",       rgb:"assets/qual/cylinder_rgb.png", trellis:"assets/ablation/TRELLIS.2/cylinder.ply", spar3d:"assets/ablation/Spar3D/mesh_cylinder.ply",  ours:"assets/mesh/cylinder_offline.ply" },
+      { key:"cross",    name:"Cross Block",    rgb:"assets/qual/cross_rgb.png",    trellis:"assets/ablation/TRELLIS.2/cross.ply",    spar3d:"assets/ablation/Spar3D/mesh_cross.ply",  ours:"assets/mesh/cross_offline.ply" },
     ];
 
     // ---------------------------
@@ -948,6 +1301,38 @@
 
     if (qualGrid) EXP1_ITEMS.forEach(addRow);
 
+
+    const qualGrid3 = document.getElementById("qualGrid3");
+
+    function addRowToGrid3(item) {
+
+      const rgbCard = mkCard({ title: item.name, tag: "RGB", bodyEl: mkImageMedia(item.rgb) });
+
+      const trellisV = mkViewerMedia({ withLegend: true });
+      const trellisCard = mkCard({ title: item.name, tag: "TRELLIS.2", bodyEl: trellisV.media });
+      trellisV.viewer.dataset.kind = "ply-mesh";
+      trellisV.viewer.dataset.src  = item.trellis;
+      trellisV.viewer.dataset.normal = "1"; // 启用明亮法向图着色
+
+      const spar3dV = mkViewerMedia({ withLegend: true });
+      const spar3dCard = mkCard({ title: item.name, tag: "SPAR3D", bodyEl: spar3dV.media });
+      spar3dV.viewer.dataset.kind = "ply-mesh";
+      spar3dV.viewer.dataset.src  = item.spar3d;
+      spar3dV.viewer.dataset.normal = "1";
+
+      const oursV = mkViewerMedia({ withLegend: true });
+      const oursCard = mkCard({ title: item.name, tag: "Ours", bodyEl: oursV.media });
+      oursV.viewer.dataset.kind = "ply-mesh";
+      oursV.viewer.dataset.src  = item.ours;
+      oursV.viewer.dataset.normal = "1";
+
+      qualGrid3.appendChild(rgbCard);
+      qualGrid3.appendChild(trellisCard);
+      qualGrid3.appendChild(spar3dCard);
+      qualGrid3.appendChild(oursCard);
+    }
+    if (qualGrid3) EXP3_ITEMS.forEach(addRowToGrid3);
+
     // Init legends already in DOM (exp2/discussion)
     document.querySelectorAll(".normalLegend").forEach(initNormalLegend);
 
@@ -965,13 +1350,24 @@
       }
     }, { threshold: 0.15, rootMargin: "300px" });
 
-    document.querySelectorAll(".viewer[data-kind][data-src]").forEach(v => io.observe(v));
+    document.querySelectorAll(".viewer[data-kind]").forEach(v => io.observe(v));
 
     function mount(el){
       if (active.has(el)) return;
 
       const kind = el.dataset.kind;
-      const src  = el.dataset.src;
+      let src  = el.dataset.src;
+
+      // If this is a temporal viewer, dynamically resolve src based on current slider value
+      const pattern = el.dataset.srcPattern;
+      if (pattern) {
+        const card = el.closest(".card");
+        const slider = card ? card.querySelector(".mesh-time-slider") : null;
+        const t = slider ? slider.value : "30";
+        src = pattern.replace("{time}", t);
+      }
+
+      if (!src && !pattern) return;
 
       const overlayEl = el.querySelector(".overlay");
       const resetBtn  = el.querySelector(".btn");
@@ -1038,7 +1434,7 @@
     }
 
     // ---------------------------
-    // PLY viewer (robust fetch+parse)
+    // PLY viewer (robust fetch+parse + incremental update)
     // ---------------------------
     function createPLYViewer({ container, src, mode, normalColormap, overlayEl, resetBtn }) {
       const renderer = new THREE.WebGLRenderer({ antialias:false, alpha:false, powerPreference:"low-power" });
@@ -1096,11 +1492,11 @@
 
       const loader = new PLYLoader();
 
-      async function loadPLY(){
+      async function loadPLY(targetSrc){
         try{
           if (overlayEl) { overlayEl.style.display = "flex"; overlayEl.textContent = "Loading 3D…"; }
 
-          const res = await fetch(src, { cache: "no-store" });
+          const res = await fetch(targetSrc, { cache: "no-store" });
           if (!res.ok) throw new Error(`HTTP ${res.status} ${res.statusText}`);
           const buf = await res.arrayBuffer();
 
@@ -1154,11 +1550,21 @@
             });
             obj3d = new THREE.Points(geometry, mat);
           } else {
-            const mat = new THREE.MeshStandardMaterial({
+            let mat;
+            if (normalColormap) {
+              // 1. 如果是法向着色（Normal Colormap），使用无光照材质 MeshBasicMaterial
+              // 这样法向颜色会完全不收灯光和阴影影响，呈现极其明亮、真实的法向彩色
+              mat = new THREE.MeshBasicMaterial({
+                vertexColors: true,
+                side: THREE.DoubleSide // 双面渲染，避免开面或网格背面显示为黑色
+              });
+            } else {
+              mat = new THREE.MeshStandardMaterial({
               metalness: 0.05,
               roughness: 0.85,
               vertexColors: true
-            });
+              });
+            }
             obj3d = new THREE.Mesh(geometry, mat);
           }
 
@@ -1169,12 +1575,16 @@
           normalizeObjectScale(obj3d, 1.0);
 
           scene.add(obj3d);
-          initCam = fitCameraToObject(camera, controls, obj3d, 1.35);
+
+          // Only fit camera on initial load, preserve custom user angles on sequential updates
+          if (!initCam) {
+            initCam = fitCameraToObject(camera, controls, obj3d, 1.35);
+          }
 
           if (overlayEl) overlayEl.style.display = "none";
           resize();
         } catch(e){
-          console.error("PLY load failed:", src, e);
+          console.error("PLY load failed:", targetSrc, e);
           if (overlayEl) {
             overlayEl.style.display = "flex";
             overlayEl.textContent = `PLY error: ${String(e).slice(0, 160)}`;
@@ -1192,7 +1602,7 @@
         });
       }
 
-      loadPLY();
+      loadPLY(src);
       resize();
 
       function render(){
@@ -1207,7 +1617,12 @@
         renderer.forceContextLoss?.();
       }
 
-      return { render, dispose };
+      // Expose function to update source model without resetting orientation
+      function updateSrc(newSrc) {
+        loadPLY(newSrc);
+      }
+
+      return { render, dispose, updateSrc };
     }
 
     // ---------------------------
@@ -1324,6 +1739,39 @@
       resize();
       return { render, dispose };
     }
+
+    // ---------------------------
+    // Hook slider changes
+    // ---------------------------
+    document.querySelectorAll(".mesh-time-slider").forEach(slider => {
+      slider.addEventListener("input", (e) => {
+        const val = e.target.value;
+        const card = slider.closest(".card");
+        if (!card) return;
+
+        // 1. Update text display label
+        const label = card.querySelector(".slider-val-label");
+        if (label) label.textContent = val + "s";
+
+        // 2. Fetch the WebGL viewer container
+        const viewerEl = card.querySelector(".viewer");
+        if (!viewerEl) return;
+
+        const pattern = viewerEl.dataset.srcPattern;
+        if (pattern) {
+          const newSrc = pattern.replace("{time}", val);
+          
+          // If viewer is currently loaded (in active viewport), trigger model update instantly
+          const viewerObj = active.get(viewerEl);
+          if (viewerObj && typeof viewerObj.updateSrc === "function") {
+            viewerObj.updateSrc(newSrc);
+          } else {
+            // Otherwise, update the target data-src so it loads the correct step when scrolled to view
+            viewerEl.dataset.src = newSrc;
+          }
+        }
+      });
+    });
 
     // ---------------------------
     // Render loop (single)
