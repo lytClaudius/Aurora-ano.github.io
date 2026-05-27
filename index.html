@@ -1044,38 +1044,54 @@
     <section class="section" id="discussion">
       <div class="container is-max-desktop">
         <div class="discBlock">
-          <h2>Discussion — Comparison with Neural Feels</h2>
+          <h2>Discussion — Reference Comparison with Neural Feels</h2>
+
           <p class="subtitle">
             We compare AURORA with Neural Feels under a matched <b>30 s</b> interaction budget on <i>Pepper</i>.
-            Our method achieves higher <b>F@5mm</b> and produces more complete geometry via active replanning and stable in-palm reorientation.
+            In this setting, AURORA achieves higher <b>F@5mm</b> and reconstructs more complete geometry,
+            benefiting from uncertainty-guided active replanning and multi-axis in-hand reorientation.
           </p>
 
           <figure class="disc-fig">
             <img src="static/images/vs_neuralfeels.png"
-                 alt="F@5mm comparison: ours vs Neural Feels"
-                 loading="lazy">
+                alt="F@5mm comparison: AURORA vs Neural Feels"
+                loading="lazy">
             <figcaption>
-              <b>F@5mm</b> over time (Pepper, 30 s). Ours reaches <b>0.89</b>, vs. <b>0.76</b> reported by Neural Feels.
+              <b>F@5mm</b> over time on <i>Pepper</i> under a 30 s interaction budget.
+              AURORA reaches <b>0.89</b>, compared with <b>0.76</b> reported by Neural Feels.
             </figcaption>
           </figure>
 
-          <div class="discGrid">
+          <p class="foot">
+            <b>Efficiency.</b> Neural Feels reports <b>417.13 s</b> wall-clock reconstruction time from a 30 s observation window,
+            while AURORA completes reconstruction in <b>71.82 s</b> including mesh extraction, achieving about <b>5.8×</b> lower latency.
+            This efficiency mainly comes from our lightweight point-cloud fusion and planning pipeline, instead of optimizing a dense neural SDF.
+          </p>
+
+          <p class="foot">
+            <b>Note.</b> This is a reference comparison rather than a strictly controlled benchmark, since the two systems differ in hardware,
+            tactile sensing, manipulation policy, task focus, and object instances. Therefore, the result should be interpreted as showing
+            higher reconstruction efficiency in our current setting, rather than claiming that AURORA is universally superior to Neural Feels.
+          </p>
+        </div>
+      </div>
+    </section>
+
+          <!-- <div class="discGrid"> -->
             <!-- RGB -->
-            <div class="card">
+            <!-- <div class="card">
               <div class="discHead">
                 <div class="title">Pepper (RGB)</div>
-<!--                <div class="tag">assets/ablation/rgb.png</div>-->
               </div>
               <div class="discMedia">
                 <img src="assets/ablation/rgb.png" alt="pepper rgb" loading="lazy" style="width:100%; height:100%; object-fit:contain;">
               </div>
-            </div>
+            </div> -->
 
             <!-- Ours mesh (PLY) -->
-            <div class="card">
+            <!-- <div class="card">
               <div class="discHead">
                 <div class="title">Ours</div>
-<!--                <div class="tag">assets/ablation/ours.ply</div>-->
               </div>
               <div class="discMedia">
                 <div class="viewer" data-kind="ply-mesh" data-src="assets/ablation/ours.ply" data-normal="1">
@@ -1085,13 +1101,12 @@
                   <div class="hint">Drag · Scroll</div>
                 </div>
               </div>
-            </div>
+            </div> -->
 
             <!-- Neural Feels mesh (OBJ) -->
-            <div class="card">
+            <!-- <div class="card">
               <div class="discHead">
                 <div class="title">NeuralFeels</div>
-<!--                <div class="tag">assets/ablation/neuralfeels.obj</div>-->
               </div>
               <div class="discMedia">
                 <div class="viewer" data-kind="obj-mesh" data-src="assets/ablation/neuralfeels.obj">
@@ -1101,15 +1116,17 @@
                 </div>
               </div>
             </div>
-          </div>
+          </div> -->
 
-          <p class="foot">
+          <!-- <p class="foot">
             <b>Efficiency.</b> Neural Feels reports <b>417.13 s</b> wall-clock time for reconstruction from a 30 s window,
             while ours completes the same stage in <b>61.82 s</b> (~6.7× faster), enabling substantially lower end-to-end latency.
+            It is worth mentioning that this comparison is subject to differences in hardware, tactile sensing, manipulation policies, 
+            task focus, and object instances
           </p>
         </div>
       </div>
-    </section>
+    </section> -->
 
   </main>
 
